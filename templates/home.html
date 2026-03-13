@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrueFrame AI — Video Authenticity Detector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Critical CSS inlined so first paint needs no extra round-trip -->
+<style>
+  *,::before,::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+  :root{
+    --bg:#04070f;--bg2:#080d1a;--surface:#0d1424;--border:#1a2540;
+    --text:#e8eef8;--muted:#5a6e96;--real:#00c373;--ai:#eb4b28;
+    --accent:#3d6fff;--hdr-h:60px;
+  }
+  [data-theme="light"]{
+    --bg:#f4f7ff;--bg2:#edf1fb;--surface:#fff;--border:#d7e1f2;
+    --text:#19283f;--muted:#5a6e96;
+  }
+  .hdr{position:fixed;top:0;left:0;right:0;height:var(--hdr-h);z-index:100;
+    background:rgba(4,7,15,.85);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid rgba(255,255,255,.06);will-change:transform}
+  [data-theme="light"] .hdr{background:rgba(244,247,255,.9);border-bottom:1px solid var(--border)}
+  .hdr-in{max-width:1200px;margin:0 auto;height:100%;padding:0 20px;display:flex;align-items:center;gap:16px}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+  .logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--real),var(--accent));
+    display:flex;align-items:center;justify-content:center}
+  .logo-mark svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .logo-name{font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;color:var(--text);line-height:1}
+  .logo-name em{font-style:normal;color:var(--real)}
+  .logo-tag{font-size:9px;color:var(--muted);letter-spacing:.04em;line-height:1;margin-top:2px;display:block}
+  .hdr-nav{display:flex;gap:2px;margin:0 auto}
+  .nav-link{padding:6px 14px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--muted);
+    text-decoration:none;transition:color .15s,background .15s}
+  .nav-link:hover,.nav-active{color:var(--text);background:rgba(255,255,255,.06)}
+  [data-theme="light"] .nav-link:hover,[data-theme="light"] .nav-active{background:rgba(0,0,0,.06)}
+  .hdr-r{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
+  .status-pill{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;
+    font-size:11px;font-weight:600;letter-spacing:.04em;
+    background:rgba(0,195,115,.1);border:1px solid rgba(0,195,115,.2);color:var(--real)}
+  .sdot{width:6px;height:6px;border-radius:50%;background:var(--real);
+    animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .btn-hdr{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;
+    background:var(--accent);color:#fff;font-size:12.5px;font-weight:600;text-decoration:none;
+    transition:opacity .15s,transform .1s;letter-spacing:.02em}
+  .btn-hdr:hover{opacity:.88;transform:translateY(-1px)}
+  .hdr-burger{display:none;flex-direction:column;gap:5px;background:none;border:none;
+    cursor:pointer;padding:6px;border-radius:6px}
+  .hdr-burger span{width:20px;height:2px;background:var(--text);border-radius:2px;
+    transition:transform .2s,opacity .2s}
+  .hdr-nav-mobile{display:none;flex-direction:column;gap:4px;padding:12px 16px 16px;
+    position:fixed;top:60px;left:0;right:0;z-index:99;
+    background:rgba(4,7,15,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+  .hdr-nav-mobile.open{display:flex}
+  .hdr-nav-mobile a{padding:10px 14px;border-radius:8px;color:var(--muted);font-size:14px;
+    font-weight:500;text-decoration:none;transition:color .15s,background .15s}
+  .hdr-nav-mobile a:hover{color:var(--text);background:rgba(255,255,255,.05)}
+  .mob-cta{background:var(--accent)!important;color:#fff!important;text-align:center;margin-top:6px}
+  @media(max-width:768px){
+    .hdr-nav,.hdr-r .status-pill{display:none}
+    .hdr-burger{display:flex}
+    .btn-hdr span{display:none}
+  }
+</style>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<div class="bg-mesh" aria-hidden="true">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="bg-orb bg-orb-4"></div>
+</div>
+<div class="bg-noise" aria-hidden="true"></div>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <a href="/" class="logo" aria-label="TrueFrame AI Home">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="logo-wordmark">
+        <span class="logo-name">TrueFrame <em>AI</em></span>
+        <span class="logo-tag">Authenticity Detector</span>
+      </div>
+    </a>
+
+    <nav class="hdr-nav" id="mainNav" aria-label="Main navigation">
+      <a href="#hero"     class="nav-link nav-active" data-section="hero">Home</a>
+      <a href="#features" class="nav-link" data-section="features">Features</a>
+      <a href="#how"      class="nav-link" data-section="how">How It Works</a>
+      <a href="#about"    class="nav-link" data-section="about">About</a>
+    </nav>
+
+    <div class="hdr-r">
+      <div class="status-pill" role="status"><span class="sdot"></span>AI Online</div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle colour theme"></button>
+      <a href="/detect" class="btn-hdr">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Analyze Video</span>
+      </a>
+    </div>
+
+    <button class="hdr-burger" id="burgerBtn" aria-label="Toggle mobile menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<nav class="hdr-nav-mobile" id="mobileNav" aria-label="Mobile navigation">
+  <a href="#hero">Home</a>
+  <a href="#features">Features</a>
+  <a href="#how">How It Works</a>
+  <a href="#about">About</a>
+  <a href="/detect" class="mob-cta">→ Analyze Video</a>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero" id="hero" aria-labelledby="heroH1">
+    <div class="hero-canvas" aria-hidden="true">
+      <div class="hero-grid"></div>
+      <div class="hero-glow hg1"></div>
+      <div class="hero-glow hg2"></div>
+      <div class="hero-glow hg3"></div>
+    </div>
+    <div class="hero-inner">
+      <div class="hero-eyebrow ani" style="--d:0ms">
+        <span class="ey-line"></span>
+        <span class="ey-txt">Video Authenticity Detection</span>
+        <span class="ey-line r"></span>
+      </div>
+      <h1 class="hero-h1 ani" id="heroH1" style="--d:80ms">
+        <span class="c-real">AUTHENTIC</span>
+        <span class="c-or">or</span>
+        <span class="c-ai">AI GENERATED?</span>
+      </h1>
+      <p class="hero-sub ani" style="--d:170ms">
+        TrueFrame AI analyses every frame of your video with two specialised detection models — identifying deepfakes, face-swaps, and AI-synthesised media with a single definitive verdict.
+      </p>
+      <div class="hero-cta ani" style="--d:260ms">
+        <a href="/detect" class="btn btn-primary btn-lg">Analyze a Video</a>
+        <span class="hero-formats">MP4 &nbsp;·&nbsp; MOV &nbsp;·&nbsp; AVI &nbsp;·&nbsp; MKV &nbsp;·&nbsp; up to 200 MB</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEY FEATURES -->
+  <section class="features" id="features" aria-labelledby="featuresH2">
+    <div class="features-inner">
+      <div class="section-label" aria-hidden="true">
+        <span class="sl-line"></span>
+        <span class="sl-txt">Capabilities</span>
+        <span class="sl-line r"></span>
+      </div>
+      <h2 class="section-h2" id="featuresH2">Key Features</h2>
+      <div class="features-grid">
+        <div class="feat-card">
+          <div class="feat-icon fi-b" aria-hidden="true">🧠</div>
+          <h4>Deepfake Detection</h4>
+          <p>ResNet-18 trained on face-swap datasets scans every frame for facial manipulation artifacts and unnatural pixel inconsistencies.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon fi-g" aria-hidden="true">🔬</div>
+          <h4>AI Synthesis Detection</h4>
+          <p>Catches Sora, Runway, Pika, and other generative models by identifying statistical synthesis signatures invisible to the human eye.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon fi-y" aria-hidden="true">⚡</div>
+          <h4>Fast Results</h4>
+          <p>Both models run sequentially across 16 evenly sampled frames. A clear verdict is typically returned in under 60 seconds.</p>
+        </div>
+        <div class="feat-card">
+          <div class="feat-icon fi-r" aria-hidden="true">📄</div>
+          <h4>Professional PDF Report</h4>
+          <p>Download a 2-page forensic report with full confidence scores, frame data, official stamp, and a detailed interpretation guide.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how" aria-labelledby="howH2">
+    <div class="wrap">
+      <div class="section-label" aria-hidden="true">
+        <span class="sl-line"></span>
+        <span class="sl-txt">Process</span>
+        <span class="sl-line r"></span>
+      </div>
+      <h2 id="howH2">How It Works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num" aria-hidden="true">01 / Upload</div>
+          <h3>Drop your video</h3>
+          <p>Supports MP4, MOV, AVI, and MKV up to 200 MB. Works on phone recordings, social media clips, news footage, or any video file.</p>
+        </div>
+        <div class="step">
+          <div class="step-num" aria-hidden="true">02 / Analyse</div>
+          <h3>Deep frame scan</h3>
+          <p>A deepfake detector checks every frame for facial manipulation. A synthesis detector checks for AI-generation signatures. Both models run across 16 evenly sampled frames.</p>
+        </div>
+        <div class="step">
+          <div class="step-num" aria-hidden="true">03 / Verdict</div>
+          <h3>Clear result</h3>
+          <p>Get a definitive AUTHENTIC or AI GENERATED verdict with confidence score, extracted frame previews, and a 2-page downloadable PDF forensic report with official stamp.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about-sec" id="about" aria-labelledby="aboutH2">
+    <div class="wrap">
+      <div class="section-label" aria-hidden="true">
+        <span class="sl-line"></span>
+        <span class="sl-txt">About</span>
+        <span class="sl-line r"></span>
+      </div>
+      <h2 id="aboutH2">About TrueFrame AI</h2>
+      <div class="about-grid">
+        <div class="about-card about-card--main">
+          <div class="about-card-icon" aria-hidden="true">🛡️</div>
+          <h3>What Is TrueFrame AI?</h3>
+          <p>TrueFrame AI is a video authenticity detection platform built to help journalists, researchers, legal professionals, and everyday people verify whether a video is genuine or AI-generated. In an era of widespread synthetic media, TrueFrame AI provides a fast, reliable, forensic-grade verdict with a single upload.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon" aria-hidden="true">🎯</div>
+          <h3>Mission</h3>
+          <p>To fight misinformation at its source — making deepfake and AI-generated video detection accessible to everyone, not just specialists. We believe truth should be verifiable by all.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon" aria-hidden="true">⚙️</div>
+          <h3>Dual-Model Technology</h3>
+          <p>Two independent neural networks run in parallel — one specialised in face-swap artifacts, another in generative model signatures. Both vote on every frame for a final confident verdict.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon" aria-hidden="true">🔒</div>
+          <h3>Privacy First</h3>
+          <p>Uploaded videos are processed ephemerally. Files are auto-deleted within 2 minutes of analysis. PDF reports are deleted immediately after download. Your data stays yours.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="cta-sec">
+    <div class="wrap">
+      <div class="cta-card">
+        <h2>Verify a video now</h2>
+        <p>Upload in seconds. Clear verdict in under a minute.</p>
+        <a href="/detect" class="btn btn-primary btn-lg">Start Detection</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="ftr">
+  <div class="ftr-in">
+    <div class="ftr-brand-wrap">
+      <div class="ftr-logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <span class="ftr-brand">TrueFrame <em>AI</em></span>
+    </div>
+    <div class="ftr-disclaimer">
+      <span class="ftr-warn" aria-hidden="true">⚠</span>TrueFrameAI is an AI and can make mistakes. Please double-check its responses
+    </div>
+    <div class="ftr-meta">
+      <span>2026</span><span class="ftr-sep" aria-hidden="true">·</span><span>Informational use only</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* Inline critical JS — runs before paint to set theme and avoid FOUC */
+(function(){
+  var html = document.documentElement;
+  var saved = localStorage.getItem('tf-theme') || 'dark';
+  html.setAttribute('data-theme', saved);
+})();
+</script>
+<script defer>
+/* All non-critical JS deferred */
+(function(){
+  var html   = document.documentElement;
+  var toggle = document.getElementById('themeToggle');
+  var burger = document.getElementById('burgerBtn');
+  var mNav   = document.getElementById('mobileNav');
+
+  function applyTheme(t){
+    html.setAttribute('data-theme', t);
+    toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+  }
+  /* Set icon immediately on load */
+  applyTheme(html.getAttribute('data-theme') || 'dark');
+
+  toggle.addEventListener('click', function(){
+    var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('tf-theme', next);
+    applyTheme(next);
+  });
+
+  burger.addEventListener('click', function(){
+    var open = mNav.classList.toggle('open');
+    burger.setAttribute('aria-expanded', open);
+  });
+
+  document.addEventListener('click', function(e){
+    if (!burger.contains(e.target) && !mNav.contains(e.target))
+      mNav.classList.remove('open');
+  });
+
+  /* Smooth scroll */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click', function(e){
+      var t = document.querySelector(a.getAttribute('href'));
+      if(t){ e.preventDefault(); t.scrollIntoView({behavior:'smooth',block:'start'}); }
+      mNav.classList.remove('open');
+    });
+  });
+
+  /* Scroll-spy — uses IntersectionObserver for zero layout-thrash */
+  var navLinks = document.querySelectorAll('.nav-link');
+  function setActive(id){
+    navLinks.forEach(function(a){ a.classList.toggle('nav-active', a.dataset.section === id); });
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting) setActive(e.target.id); });
+  }, {rootMargin:'-35% 0px -60% 0px', threshold:0});
+  ['hero','features','how','about'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) io.observe(el);
+  });
+
+  /* Reveal animations using IntersectionObserver (no scroll listeners = perf win) */
+  var revealIO = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('ani-in'); revealIO.unobserve(e.target); }
+    });
+  }, {threshold:0.12});
+  document.querySelectorAll('.feat-card,.step,.about-card').forEach(function(el){
+    revealIO.observe(el);
+  });
+})();
+</script>
+</body>
+</html>

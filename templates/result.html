@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Result — TrueFrame AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Inline critical CSS -->
+<style>
+  *,::before,::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+  :root{
+    --bg:#04070f;--bg2:#080d1a;--surface:#0d1424;--border:#1a2540;
+    --text:#e8eef8;--muted:#5a6e96;--real:#00c373;--ai:#eb4b28;
+    --accent:#3d6fff;--hdr-h:60px;
+    --v-col: {% if result.label == 'AUTHENTIC' %}#00c373{% else %}#eb4b28{% endif %};
+  }
+  [data-theme="light"]{
+    --bg:#f4f7ff;--bg2:#edf1fb;--surface:#fff;--border:#d7e1f2;
+    --text:#19283f;--muted:#5a6e96;
+  }
+  .hdr{position:fixed;top:0;left:0;right:0;height:var(--hdr-h);z-index:100;
+    background:rgba(4,7,15,.85);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid rgba(255,255,255,.06);will-change:transform}
+  [data-theme="light"] .hdr{background:rgba(244,247,255,.9);border-bottom:1px solid var(--border)}
+  .hdr-in{max-width:1200px;margin:0 auto;height:100%;padding:0 20px;display:flex;align-items:center;gap:16px}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+  .logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--real),var(--accent));
+    display:flex;align-items:center;justify-content:center}
+  .logo-mark svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .logo-name{font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;color:var(--text);line-height:1}
+  .logo-name em{font-style:normal;color:var(--real)}
+  .logo-tag{font-size:9px;color:var(--muted);letter-spacing:.04em;line-height:1;margin-top:2px;display:block}
+  .hdr-nav{display:flex;gap:2px;margin:0 auto}
+  .nav-link{padding:6px 14px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--muted);
+    text-decoration:none;transition:color .15s,background .15s}
+  .nav-link:hover{color:var(--text);background:rgba(255,255,255,.06)}
+  .hdr-r{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
+  .status-pill{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;
+    font-size:11px;font-weight:600;letter-spacing:.04em;border:1px solid}
+  .pill-real{background:rgba(0,195,115,.1);border-color:rgba(0,195,115,.25);color:var(--real)}
+  .pill-ai{background:rgba(235,75,40,.1);border-color:rgba(235,75,40,.25);color:var(--ai)}
+  .sdot{width:6px;height:6px;border-radius:50%}
+  .sdot-real{background:var(--real)}
+  .sdot-ai{background:var(--ai)}
+  .btn-hdr{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;
+    background:var(--accent);color:#fff;font-size:12.5px;font-weight:600;text-decoration:none;
+    transition:opacity .15s,transform .1s;letter-spacing:.02em}
+  .btn-hdr:hover{opacity:.88;transform:translateY(-1px)}
+  .hdr-burger{display:none;flex-direction:column;gap:5px;background:none;border:none;
+    cursor:pointer;padding:6px;border-radius:6px}
+  .hdr-burger span{width:20px;height:2px;background:var(--text);border-radius:2px}
+  .hdr-nav-mobile{display:none;flex-direction:column;gap:4px;padding:12px 16px 16px;
+    position:fixed;top:60px;left:0;right:0;z-index:99;
+    background:rgba(4,7,15,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+  .hdr-nav-mobile.open{display:flex}
+  .hdr-nav-mobile a{padding:10px 14px;border-radius:8px;color:var(--muted);font-size:14px;
+    font-weight:500;text-decoration:none;transition:color .15s,background .15s}
+  .hdr-nav-mobile a:hover{color:var(--text);background:rgba(255,255,255,.05)}
+  .mob-cta{background:var(--accent)!important;color:#fff!important;text-align:center;margin-top:6px}
+  @media(max-width:768px){
+    .hdr-nav,.hdr-r .status-pill{display:none}
+    .hdr-burger{display:flex}
+  }
+</style>
+<link rel="stylesheet" href="/static/css/style.css">
+<link rel="stylesheet" href="/static/css/result.css">
+</head>
+<body class="{{ 'body-real' if result.label == 'AUTHENTIC' else 'body-ai' }}">
+
+<div class="bg-mesh" aria-hidden="true">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="bg-orb bg-orb-4"></div>
+</div>
+<div class="bg-noise" aria-hidden="true"></div>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <a href="/" class="logo" aria-label="TrueFrame AI Home">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="logo-wordmark">
+        <span class="logo-name">TrueFrame <em>AI</em></span>
+        <span class="logo-tag">Authenticity Detector</span>
+      </div>
+    </a>
+
+    <nav class="hdr-nav" id="mainNav" aria-label="Main navigation">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/#features" class="nav-link">Features</a>
+      <a href="/#how" class="nav-link">How It Works</a>
+      <a href="/#about" class="nav-link">About</a>
+    </nav>
+
+    <div class="hdr-r">
+      <div class="status-pill {{ 'pill-real' if result.label == 'AUTHENTIC' else 'pill-ai' }}" role="status">
+        <span class="sdot {{ 'sdot-real' if result.label == 'AUTHENTIC' else 'sdot-ai' }}" aria-hidden="true"></span>
+        Analysis Complete
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle colour theme"></button>
+      <a href="/detect" class="btn-hdr">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        New Analysis
+      </a>
+    </div>
+
+    <button class="hdr-burger" id="burgerBtn" aria-label="Toggle mobile menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<nav class="hdr-nav-mobile" id="mobileNav" aria-label="Mobile navigation">
+  <a href="/">Home</a>
+  <a href="/#features">Features</a>
+  <a href="/#how">How It Works</a>
+  <a href="/#about">About</a>
+  <a href="/detect" class="mob-cta">→ New Analysis</a>
+</nav>
+
+<main class="result-main">
+
+  <!-- Verdict hero -->
+  <section class="vhero" aria-labelledby="verdictWord">
+    <div class="vhero-bg" aria-hidden="true">
+      <div class="vhero-glow {{ 'vg-real' if result.label == 'AUTHENTIC' else 'vg-ai' }}"></div>
+      <div class="vhero-scan"></div>
+    </div>
+    <div class="vhero-inner">
+
+      <div class="vhero-eyebrow ani" style="--d:0ms">
+        <span class="ve-line" aria-hidden="true"></span>
+        <span class="ve-txt">Authenticity Verdict</span>
+        <span class="ve-line r" aria-hidden="true"></span>
+      </div>
+
+      <h1 class="verdict-word {{ 'vw-real' if result.label == 'AUTHENTIC' else 'vw-ai' }} ani"
+          id="verdictWord" style="--d:80ms">
+        {{ result.label }}
+      </h1>
+
+      <div class="stats-row ani" style="--d:180ms">
+        <div class="stat-item">
+          <span class="stat-label">Confidence</span>
+          <span class="stat-value {{ 'sv-real' if result.label == 'AUTHENTIC' else 'sv-ai' }}">
+            {{ result.confidence }}<sup style="font-size:.5em;font-weight:500;opacity:.7">%</sup>
+          </span>
+          <div class="conf-bar-wrap" role="meter"
+               aria-valuenow="{{ result.confidence }}" aria-valuemin="0" aria-valuemax="100"
+               aria-label="Confidence: {{ result.confidence }}%">
+            <div class="conf-bar-fill {{ 'cbf-real' if result.label == 'AUTHENTIC' else 'cbf-ai' }}"
+                 id="confBar" style="width:0%;transition:width .9s cubic-bezier(.22,1,.36,1)"></div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Frames Analysed</span>
+          <span class="stat-value">{{ result.frames_count }}</span>
+          <span class="stat-unit">sampled evenly</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Processing Time</span>
+          <span class="stat-value">{{ result.processing_time }}<sup style="font-size:.45em;font-weight:500;opacity:.6">s</sup></span>
+          <span class="stat-unit">analysis duration</span>
+        </div>
+      </div>
+
+      <!-- Auto-delete notice -->
+      <div class="autodel-notice ani" style="--d:260ms" role="status">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Video and frames will be automatically deleted in ~2 minutes. Download the PDF report now if needed.
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Video player -->
+  <div class="vid-section ani" style="--d:300ms">
+    <div class="vid-panel">
+      <div class="vid-header">
+        <div class="vid-header-left">
+          <div class="vid-dot {{ 'vd-real' if result.label == 'AUTHENTIC' else 'vd-ai' }}" aria-hidden="true"></div>
+          <span class="vid-title">Uploaded Video</span>
+        </div>
+        <span class="vid-tag">Source File</span>
+      </div>
+      <div class="vid-body">
+        <div class="vid-wrap">
+          <!-- Poster placeholder — clicking swaps to actual <video> element -->
+          <div class="vid-ph" id="vidPh" role="button" tabindex="0"
+               aria-label="Click to play uploaded video">
+            <div class="vp-btn {{ 'vpb-real' if result.label == 'AUTHENTIC' else 'vpb-ai' }}" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+            </div>
+            <span class="vp-hint">Click to play</span>
+          </div>
+          <!-- Video not loaded until user clicks — saves bandwidth & speeds page load -->
+          <video id="mainVid" style="display:none" controls preload="none"
+                 aria-label="Uploaded video for analysis">
+            <source src="/static/uploads/{{ video }}" type="video/mp4">
+            Your browser does not support the video element.
+          </video>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Extracted frames — images lazy-loaded for fast initial paint -->
+  {% if result.frames %}
+  <div class="frames-section ani" style="--d:380ms">
+    <div class="frames-panel">
+      <div class="frames-header">
+        <div class="fh-left">
+          <span class="vid-title">Extracted Frames</span>
+          <span class="fcount-badge">{{ result.frames_count }}</span>
+        </div>
+        <span class="vid-tag">Sampled Evenly</span>
+      </div>
+      <div class="frames-grid">
+        {% for frame in result.frames %}
+        <div class="frame-card">
+          <img src="/static/{{ frame }}"
+               alt="Frame {{ loop.index }} of {{ result.frames_count }}"
+               loading="lazy"
+               decoding="async"
+               width="480"
+               height="270">
+          <div class="frame-badge" aria-hidden="true">Frame {{ loop.index }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Action buttons -->
+  <div class="actions-section ani" style="--d:460ms">
+    {% if result.pdf_filename %}
+    <a href="/download_pdf/{{ result.pdf_filename }}" class="btn btn-primary" download
+       aria-label="Download PDF forensic report">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Download PDF Report
+    </a>
+    {% endif %}
+    <a href="/detect" class="btn btn-outline">Analyse Another Video</a>
+    <a href="/" class="btn btn-ghost">← Home</a>
+  </div>
+
+</main>
+
+<footer class="ftr">
+  <div class="ftr-in">
+    <div class="ftr-brand-wrap">
+      <div class="ftr-logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <span class="ftr-brand">TrueFrame <em>AI</em></span>
+    </div>
+    <div class="ftr-disclaimer">
+      <span class="ftr-warn" aria-hidden="true">⚠</span>TrueFrameAI is an AI and can make mistakes. Please double-check its responses
+    </div>
+    <div class="ftr-meta">
+      <span>2026</span><span class="ftr-sep" aria-hidden="true">·</span><span>Informational use only</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Theme set before render to eliminate FOUC -->
+<script>(function(){var h=document.documentElement;h.setAttribute('data-theme',localStorage.getItem('tf-theme')||'dark')})();</script>
+<script defer>
+(function(){
+  /* ── Theme ── */
+  var html = document.documentElement;
+  var toggle = document.getElementById('themeToggle');
+  function applyTheme(t){
+    html.setAttribute('data-theme', t);
+    toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+  }
+  applyTheme(html.getAttribute('data-theme') || 'dark');
+  toggle.addEventListener('click', function(){
+    var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('tf-theme', next);
+    applyTheme(next);
+  });
+
+  /* ── Mobile nav ── */
+  var burger = document.getElementById('burgerBtn');
+  var mNav   = document.getElementById('mobileNav');
+  burger.addEventListener('click', function(){
+    var open = mNav.classList.toggle('open');
+    burger.setAttribute('aria-expanded', open);
+  });
+  document.addEventListener('click', function(e){
+    if (!burger.contains(e.target) && !mNav.contains(e.target))
+      mNav.classList.remove('open');
+  });
+
+  /* ── Video play on demand — only loads stream when user requests ── */
+  var vidPh   = document.getElementById('vidPh');
+  var mainVid = document.getElementById('mainVid');
+  function playVideo(){
+    vidPh.style.display = 'none';
+    mainVid.style.display = 'block';
+    mainVid.load();
+    mainVid.play().catch(function(){/* autoplay blocked — controls shown */});
+  }
+  if (vidPh){
+    vidPh.addEventListener('click', playVideo);
+    vidPh.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); playVideo(); }
+    });
+  }
+
+  /* ── Confidence bar — triggered after paint so it animates visibly ── */
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      var bar = document.getElementById('confBar');
+      if (bar) bar.style.width = '{{ result.confidence }}%';
+    });
+  });
+
+  /* ── Immediate cleanup when user leaves the result page ──
+     sendBeacon works even mid-navigation; visibilitychange catches tab-switch. ── */
+  var _cleanupDone = false;
+  var _cleanupUrl  = '/cleanup/{{ video }}';
+  function triggerCleanup(){
+    if (_cleanupDone) return;
+    _cleanupDone = true;
+    // sendBeacon fires reliably even during page unload
+    if (navigator.sendBeacon){
+      navigator.sendBeacon(_cleanupUrl);
+    } else {
+      // Fallback for older browsers
+      fetch(_cleanupUrl, {method:'POST', keepalive:true}).catch(function(){});
+    }
+  }
+
+  // Fires when tab is hidden (user switches tab, minimises, or navigates away)
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'hidden') triggerCleanup();
+  });
+
+  // Fires on mobile/Safari where visibilitychange may not fire reliably
+  window.addEventListener('pagehide', triggerCleanup);
+
+  // Also fire immediately when any in-page link is clicked (Home, New Analysis, etc.)
+  document.querySelectorAll('a[href]').forEach(function(a){
+    a.addEventListener('click', triggerCleanup);
+  });
+  var notice = document.querySelector('.autodel-notice');
+  if (notice){
+    var startTime = Date.now();
+    var deleteAt  = startTime + 120 * 1000; // 2 min
+    function tick(){
+      var remaining = Math.max(0, Math.round((deleteAt - Date.now()) / 1000));
+      if (remaining <= 0){
+        notice.textContent = 'Files have been deleted from the server.';
+        return;
+      }
+      var mins = Math.floor(remaining / 60);
+      var secs = remaining % 60;
+      notice.innerHTML =
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' +
+        ' Video &amp; frames auto-delete in ' + mins + ':' + (secs < 10 ? '0' : '') + secs +
+        '. Download the PDF report if needed.';
+      setTimeout(tick, 1000);
+    }
+    tick();
+  }
+})();
+</script>
+</body>
+</html>

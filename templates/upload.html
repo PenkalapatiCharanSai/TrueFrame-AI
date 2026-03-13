@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload — TrueFrame AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Inline critical CSS to avoid render-blocking -->
+<style>
+  *,::before,::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+  :root{
+    --bg:#04070f;--bg2:#080d1a;--surface:#0d1424;--border:#1a2540;
+    --text:#e8eef8;--muted:#5a6e96;--real:#00c373;--ai:#eb4b28;
+    --accent:#3d6fff;--hdr-h:60px;
+  }
+  [data-theme="light"]{
+    --bg:#f4f7ff;--bg2:#edf1fb;--surface:#fff;--border:#d7e1f2;
+    --text:#19283f;--muted:#5a6e96;
+  }
+  .hdr{position:fixed;top:0;left:0;right:0;height:var(--hdr-h);z-index:100;
+    background:rgba(4,7,15,.85);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid rgba(255,255,255,.06);will-change:transform}
+  [data-theme="light"] .hdr{background:rgba(244,247,255,.9);border-bottom:1px solid var(--border)}
+  .hdr-in{max-width:1200px;margin:0 auto;height:100%;padding:0 20px;display:flex;align-items:center;gap:16px}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+  .logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--real),var(--accent));
+    display:flex;align-items:center;justify-content:center}
+  .logo-mark svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .logo-name{font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;color:var(--text);line-height:1}
+  .logo-name em{font-style:normal;color:var(--real)}
+  .logo-tag{font-size:9px;color:var(--muted);letter-spacing:.04em;line-height:1;margin-top:2px;display:block}
+  .hdr-nav{display:flex;gap:2px;margin:0 auto}
+  .nav-link{padding:6px 14px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--muted);
+    text-decoration:none;transition:color .15s,background .15s}
+  .nav-link:hover{color:var(--text);background:rgba(255,255,255,.06)}
+  [data-theme="light"] .nav-link:hover{background:rgba(0,0,0,.06)}
+  .hdr-r{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
+  .status-pill{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;
+    font-size:11px;font-weight:600;letter-spacing:.04em;
+    background:rgba(61,111,255,.1);border:1px solid rgba(61,111,255,.2);color:var(--accent)}
+  .sdot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .btn-hdr{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;
+    background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--text);
+    font-size:12.5px;font-weight:600;text-decoration:none;transition:background .15s;letter-spacing:.02em}
+  .btn-hdr:hover{background:rgba(255,255,255,.12)}
+  [data-theme="light"] .btn-hdr{background:rgba(0,0,0,.05)}
+  [data-theme="light"] .btn-hdr:hover{background:rgba(0,0,0,.09)}
+  .hdr-burger{display:none;flex-direction:column;gap:5px;background:none;border:none;
+    cursor:pointer;padding:6px;border-radius:6px}
+  .hdr-burger span{width:20px;height:2px;background:var(--text);border-radius:2px;transition:transform .2s,opacity .2s}
+  .hdr-nav-mobile{display:none;flex-direction:column;gap:4px;padding:12px 16px 16px;
+    position:fixed;top:60px;left:0;right:0;z-index:99;
+    background:rgba(4,7,15,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+  .hdr-nav-mobile.open{display:flex}
+  .hdr-nav-mobile a{padding:10px 14px;border-radius:8px;color:var(--muted);font-size:14px;
+    font-weight:500;text-decoration:none;transition:color .15s,background .15s}
+  .hdr-nav-mobile a:hover{color:var(--text);background:rgba(255,255,255,.05)}
+  @media(max-width:768px){
+    .hdr-nav,.hdr-r .status-pill{display:none}
+    .hdr-burger{display:flex}
+  }
+</style>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<div class="bg-mesh" aria-hidden="true">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="bg-orb bg-orb-4"></div>
+</div>
+<div class="bg-noise" aria-hidden="true"></div>
+
+<header class="hdr">
+  <div class="hdr-in">
+    <a href="/" class="logo" aria-label="TrueFrame AI Home">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="logo-wordmark">
+        <span class="logo-name">TrueFrame <em>AI</em></span>
+        <span class="logo-tag">Authenticity Detector</span>
+      </div>
+    </a>
+
+    <nav class="hdr-nav" id="mainNav" aria-label="Main navigation">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/#features" class="nav-link">Features</a>
+      <a href="/#how" class="nav-link">How It Works</a>
+      <a href="/#about" class="nav-link">About</a>
+    </nav>
+
+    <div class="hdr-r">
+      <div class="status-pill" role="status"><span class="sdot"></span>Ready</div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle colour theme"></button>
+      <a href="/" class="btn-hdr">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        Home
+      </a>
+    </div>
+
+    <button class="hdr-burger" id="burgerBtn" aria-label="Toggle mobile menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<nav class="hdr-nav-mobile" id="mobileNav" aria-label="Mobile navigation">
+  <a href="/">Home</a>
+  <a href="/#features">Features</a>
+  <a href="/#how">How It Works</a>
+  <a href="/#about">About</a>
+</nav>
+
+<main class="up-main">
+  <div class="up-wrap">
+
+    <div class="up-head ani" style="--d:0ms">
+      <div class="up-tag">Authenticity Analysis</div>
+      <h1>Upload Video</h1>
+      <p>Drop your video below. Both detection models run automatically — no configuration needed.</p>
+      <p class="up-privacy-note">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        Files are auto-deleted within 2 minutes after analysis.
+      </p>
+    </div>
+
+    {% if error %}
+    <div class="err-box ani" style="--d:50ms" role="alert">
+      <span aria-hidden="true">⚠</span> {{ error }}
+    </div>
+    {% endif %}
+
+    <form id="upForm" action="/analyze" method="POST"
+          enctype="multipart/form-data" class="ani" style="--d:100ms"
+          novalidate>
+
+      <div class="drop-zone" id="dz" role="button" tabindex="0"
+           aria-label="Drop video file here or click to browse">
+        <input type="file" name="file" id="fileInput" accept="video/*" required
+               aria-label="Select video file" style="display:none">
+        <div class="dz-idle" id="dzIdle">
+          <div class="dz-icon" aria-hidden="true">🎬</div>
+          <p class="dz-title">Drop video here or <span class="dz-link">browse</span></p>
+          <p class="dz-sub">MP4 · MOV · AVI · MKV · max 200 MB</p>
+        </div>
+        <div class="dz-sel" id="dzSel" style="display:none" aria-live="polite">
+          <div class="ds-icon" aria-hidden="true">🎥</div>
+          <div class="ds-info">
+            <p class="ds-name" id="dsName"></p>
+            <p class="ds-meta" id="dsMeta"></p>
+          </div>
+          <button type="button" class="ds-rm" id="dsRm" aria-label="Remove selected file">✕</button>
+        </div>
+      </div>
+
+      <div class="up-strip" aria-label="Included in analysis">
+        <div class="us-item"><span class="us-dot ud-g" aria-hidden="true"></span>Face-swap detector</div>
+        <div class="us-item"><span class="us-dot ud-b" aria-hidden="true"></span>Synthesis detector</div>
+        <div class="us-item"><span class="us-dot ud-y" aria-hidden="true"></span>PDF report included</div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="subBtn" disabled aria-disabled="true">
+        <span id="btnTxt">Run Analysis</span>
+        <span id="btnSpinner" class="spinner" style="display:none" aria-hidden="true"></span>
+      </button>
+    </form>
+
+    <!-- Processing overlay — shown after form submit -->
+    <div class="proc-ov" id="procOv" style="display:none" role="status" aria-live="polite">
+      <div class="proc-card">
+        <div class="proc-ring" aria-hidden="true"></div>
+        <h3>Analysing video…</h3>
+        <p>This takes 30–90 seconds depending on video length</p>
+        <div class="proc-steps" aria-label="Analysis progress">
+          <div class="ps-row" id="ps1"><span class="ps-d" aria-hidden="true"></span>Extracting frames</div>
+          <div class="ps-row" id="ps2"><span class="ps-d" aria-hidden="true"></span>Running face-swap detector</div>
+          <div class="ps-row" id="ps3"><span class="ps-d" aria-hidden="true"></span>Running synthesis detector</div>
+          <div class="ps-row" id="ps4"><span class="ps-d" aria-hidden="true"></span>Generating PDF report</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="ftr">
+  <div class="ftr-in">
+    <div class="ftr-brand-wrap">
+      <div class="ftr-logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <span class="ftr-brand">TrueFrame <em>AI</em></span>
+    </div>
+    <div class="ftr-disclaimer">
+      <span class="ftr-warn" aria-hidden="true">⚠</span>TrueFrameAI is an AI and can make mistakes. Please double-check its responses
+    </div>
+    <div class="ftr-meta">
+      <span>2026</span><span class="ftr-sep" aria-hidden="true">·</span><span>Informational use only</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Theme set before render to prevent FOUC -->
+<script>(function(){var h=document.documentElement;h.setAttribute('data-theme',localStorage.getItem('tf-theme')||'dark')})();</script>
+<script defer>
+(function(){
+  /* ── Theme ── */
+  var html = document.documentElement;
+  var toggle = document.getElementById('themeToggle');
+  function applyTheme(t){
+    html.setAttribute('data-theme', t);
+    toggle.textContent = t === 'dark' ? '☀️' : '🌙';
+  }
+  applyTheme(html.getAttribute('data-theme') || 'dark');
+  toggle.addEventListener('click', function(){
+    var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('tf-theme', next);
+    applyTheme(next);
+  });
+
+  /* ── Mobile nav ── */
+  var burger = document.getElementById('burgerBtn');
+  var mNav   = document.getElementById('mobileNav');
+  burger.addEventListener('click', function(){
+    var open = mNav.classList.toggle('open');
+    burger.setAttribute('aria-expanded', open);
+  });
+  document.addEventListener('click', function(e){
+    if (!burger.contains(e.target) && !mNav.contains(e.target))
+      mNav.classList.remove('open');
+  });
+
+  /* ── Upload form ── */
+  var fi   = document.getElementById('fileInput');
+  var dz   = document.getElementById('dz');
+  var dzI  = document.getElementById('dzIdle');
+  var dzS  = document.getElementById('dzSel');
+  var nm   = document.getElementById('dsName');
+  var mt   = document.getElementById('dsMeta');
+  var rm   = document.getElementById('dsRm');
+  var sb   = document.getElementById('subBtn');
+  var bt   = document.getElementById('btnTxt');
+  var sp   = document.getElementById('btnSpinner');
+  var ov   = document.getElementById('procOv');
+
+  function fmtSz(b){
+    return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : (b/1024).toFixed(0)+' KB';
+  }
+
+  function showFile(f){
+    nm.textContent = f.name;
+    mt.textContent = fmtSz(f.size) + ' · ' + f.name.split('.').pop().toUpperCase();
+    dzI.style.display = 'none';
+    dzS.style.display = 'flex';
+    sb.disabled = false;
+    sb.removeAttribute('aria-disabled');
+  }
+
+  function clearFile(){
+    fi.value = '';
+    dzI.style.display = 'flex';
+    dzS.style.display = 'none';
+    sb.disabled = true;
+    sb.setAttribute('aria-disabled', 'true');
+  }
+
+  /* Click on drop zone opens file picker */
+  dz.addEventListener('click', function(e){
+    if (e.target !== rm) fi.click();
+  });
+  dz.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fi.click(); }
+  });
+
+  fi.addEventListener('change', function(e){
+    if (e.target.files[0]) showFile(e.target.files[0]);
+  });
+  rm.addEventListener('click', function(e){
+    e.stopPropagation();
+    clearFile();
+  });
+
+  /* Drag-and-drop */
+  dz.addEventListener('dragover', function(e){
+    e.preventDefault();
+    dz.classList.add('dz-over');
+  });
+  dz.addEventListener('dragleave', function(){
+    dz.classList.remove('dz-over');
+  });
+  dz.addEventListener('drop', function(e){
+    e.preventDefault();
+    dz.classList.remove('dz-over');
+    var f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('video/')){
+      var dt = new DataTransfer();
+      dt.items.add(f);
+      fi.files = dt.files;
+      showFile(f);
+    }
+  });
+
+  /* Form submit — show overlay, advance steps based on elapsed time */
+  document.getElementById('upForm').addEventListener('submit', function(e){
+    if (!fi.files.length){ e.preventDefault(); return; }
+    if (fi.files[0].size > 200 * 1024 * 1024){
+      e.preventDefault();
+      alert('File exceeds 200 MB limit.');
+      return;
+    }
+
+    sb.disabled = true;
+    bt.textContent = 'Uploading…';
+    sp.style.display = 'inline-block';
+    ov.style.display = 'flex';
+
+    /* Step timestamps (ms after submit) — spaced across typical 30-90s range */
+    var steps = [1500, 7000, 22000, 42000];
+    steps.forEach(function(delay, i){
+      setTimeout(function(){
+        document.getElementById('ps' + (i + 1)).classList.add('ps-on');
+      }, delay);
+    });
+  });
+})();
+</script>
+</body>
+</html>
