@@ -8,4 +8,4 @@ pillow
 transformers
 scikit-learn
 reportlab
-
+fpdf2
