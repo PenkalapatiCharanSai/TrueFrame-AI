@@ -1,7 +1,3 @@
-Here is a **professional GitHub README.md content** for your project.
-You can **directly copy and paste** into your GitHub repository.
-
----
 
 # 🚀 TrueFrame AI – Video Authenticity Detector
 
